@@ -6,7 +6,7 @@ function Table() {
   const [reviews, setReviews] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedReviews, setExpandedReviews] = useState({});
-  const maxLength = 50;
+  const maxLength = 60;
   const reviewsPerPage = 10000;
 
   const indexOfLastReview = currentPage * reviewsPerPage;
