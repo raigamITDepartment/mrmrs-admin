@@ -40,7 +40,9 @@ function Table() {
     });
   };
   
-
+useEffect(()=>{
+console.log('hi, im your conflict');
+});
   useEffect(() => {
     const referdb = ref(database, "reviews");   // Refer the database using db name
     const unsubscribe = onValue(referdb, (snapshot) => {
