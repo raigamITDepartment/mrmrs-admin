@@ -1,93 +1,26 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function RaffleDraw() {
-  // ---------- State ----------
-  const [rawEntries, setRawEntries] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("raffle_entries") || "[]");
-    } catch {
-      return [];
-    }
-  });
-  const [winners, setWinners] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("raffle_winners") || "[]");
-    } catch {
-      return [];
-    }
-  });
-  const [history, setHistory] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("raffle_history") || "[]");
-    } catch {
-      return [];
-    }
-  });
-  const [spotlight, setSpotlight] = useState(null);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [countdown, setCountdown] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [showTools, setShowTools] = useState(false);
-  const [fileName, setFileName] = useState("");
-
-  const tickerRef = useRef(null);
+  const [displayedWinners, setDisplayedWinners] = useState([]);
   const confettiRef = useRef(null);
   const confettiIntervalRef = useRef(null);
 
-  // ---------- Derived ----------
-  const entries = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (rawEntries || []).map((s) => String(s).trim()).filter(Boolean)
-        )
-      ),
-    [rawEntries]
-  );
+  // Simulated backend winners with coupon numbers and dates
+  const dummyNames = [
+    { name: "Alice", coupon: "A123" },
+    { name: "Bob", coupon: "B456" },
+    { name: "Charlie", coupon: "C789" },
+    { name: "David", coupon: "D321" },
+    { name: "Eva", coupon: "E654" },
+    { name: "Frank", coupon: "F987" },
+  ];
 
-  // ---------- LocalStorage ----------
-  useEffect(() => {
-    localStorage.setItem("raffle_entries", JSON.stringify(rawEntries));
-  }, [rawEntries]);
-  useEffect(() => {
-    localStorage.setItem("raffle_winners", JSON.stringify(winners));
-  }, [winners]);
-  useEffect(() => {
-    localStorage.setItem("raffle_history", JSON.stringify(history));
-  }, [history]);
-
-  // ---------- Keyboard Shortcut ----------
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.code === "Space" && !isDrawing) {
-        e.preventDefault();
-        startDraw();
-      }
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [isDrawing, entries]);
-
-  // ---------- CSV Upload (Get all data) ----------
-  const parseCSV = (text) =>
-    String(text)
-      .split(/\r?\n/)
-      .map((r) => r.trim())
-      .filter(Boolean)
-      .map((r) => r.split(",").map((v) => v.replace(/^"|"$/g, "")).join(" - "))
-      .filter(Boolean);
-
-  const handleFile = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setRawEntries(parseCSV(ev.target.result));
-    };
-    reader.readAsText(file);
-  };
-
-  // ---------- Continuous Confetti ----------
+  // ---------- Confetti ----------
   const startConfetti = () => {
     if (confettiIntervalRef.current) return;
     const host = confettiRef.current;
@@ -133,147 +66,124 @@ export default function RaffleDraw() {
     }
   };
 
-  // ---------- Draw (Fixed 30s) ----------
+  // ---------- Start Draw ----------
   const startDraw = () => {
-    if (isDrawing || entries.length === 0) return;
+    if (isDrawing) return;
+    if (!fromDate || !toDate) {
+      alert("Please select both From and To dates!");
+      return;
+    }
+
     setIsDrawing(true);
+    setDisplayedWinners([]);
+    stopConfetti();
 
-    stopConfetti(); // stop previous confetti before new draw
+    setCountdown(15);
+    let counter = 15;
 
-    const pool = [...entries];
-    const target = pool[Math.floor(Math.random() * pool.length)];
-
-    const totalDuration = 30000; // fixed 30 seconds
-    const totalTicks = 200;
-    const interval = totalDuration / totalTicks;
-
-    let idx = Math.floor(Math.random() * pool.length);
-    let t = 0;
-
-    const tick = () => {
-      idx = (idx + 1) % pool.length;
-      setSpotlight(pool[idx]);
-      t++;
-
-      if (t >= totalTicks && pool[idx] === target) {
-        setTimeout(() => finalize(target), interval);
-        return;
+    const interval = setInterval(() => {
+      counter -= 1;
+      setCountdown(counter);
+      if (counter <= 0) {
+        clearInterval(interval);
+        showWinners();
       }
-
-      tickerRef.current = setTimeout(tick, interval);
-    };
-
-    if (tickerRef.current) clearTimeout(tickerRef.current);
-    tick();
+    }, 1000);
   };
 
-  const finalize = (name) => {
-    const stamp = new Date().toLocaleString();
-    startConfetti(); // start continuous confetti after draw
-    setWinners((prev) => [{ value: name, time: stamp }, ...prev]);
-    setHistory((prev) => [{ value: name, time: stamp }, ...prev]);
-    setIsDrawing(false);
+  const showWinners = () => {
+    // simulate fetching winners slowly
+    let idx = 0;
+    const shuffled = [...dummyNames].sort(() => Math.random() - 0.5);
+
+    const interval = setInterval(() => {
+      const dateStr = new Date().toLocaleDateString();
+      setDisplayedWinners((prev) => [
+        ...prev,
+        { ...shuffled[idx], date: dateStr },
+      ]);
+      idx++;
+      if (idx >= shuffled.length) {
+        clearInterval(interval);
+        setIsDrawing(false);
+        startConfetti();
+      }
+    }, 800); // 0.8s per winner
   };
 
   useEffect(() => {
-    return () => {
-      if (tickerRef.current) clearTimeout(tickerRef.current);
-      stopConfetti();
-    };
+    return () => stopConfetti();
   }, []);
 
-  // ---------- CSV Export ----------
-  const exportCSV = (rows, filename) => {
-    const csv =
-      "value,time\n" +
-      rows.map((r) => `${escapeCSV(r.value)},${escapeCSV(r.time)}`).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const escapeCSV = (s) => {
-    if (s.includes(",") || s.includes("\n") || s.includes('"')) {
-      return '"' + s.replace(/"/g, '""') + '"';
-    }
-    return s;
-  };
-
-  // ---------- Render ----------
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-red-500 via-orange-500 to-yellow-300 p-6 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-pink-100 p-12 relative overflow-hidden">
       <div ref={confettiRef} className="absolute inset-0 pointer-events-none"></div>
 
-      <h1 className="text-4xl font-extrabold text-yellow-100 mb-6 text-shadow">
-        Lucky Draw
+      <h1 className="text-5xl font-extrabold text-center mb-8 text-purple-600">
+        🎉 Lucky Draw
       </h1>
 
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-6 w-full max-w-md text-center">
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={spotlight ?? "-"}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-3xl font-bold"
-          >
-            {spotlight ?? "—"}
-          </motion.div>
-        </AnimatePresence>
+      {/* Date Selection */}
+      <div className="flex gap-4 mb-6">
+        <div className="flex flex-col">
+          <label className="font-semibold mb-1 text-gray-700">From:</label>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none"
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="font-semibold mb-1 text-gray-700">To:</label>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none"
+          />
+        </div>
       </div>
 
       <button
         onClick={startDraw}
-        disabled={isDrawing || entries.length === 0}
-        className="px-8 py-3 bg-yellow-400 font-bold rounded-lg shadow-md disabled:opacity-60 mb-4"
+        disabled={isDrawing}
+        className="px-10 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-bold rounded-full shadow-lg hover:scale-105 transition-transform mb-6 disabled:opacity-50"
       >
         {isDrawing ? "Drawing…" : "Draw"}
       </button>
 
-      <div className="mb-4">
-        <button
-          onClick={() => setShowTools(!showTools)}
-          className="underline mr-4"
+      {countdown !== null && countdown > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-6xl font-extrabold text-yellow-500 drop-shadow-lg"
         >
-          {showTools ? "Hide Tools" : "Show Tools"}
-        </button>
-        <label className="cursor-pointer underline">
-          Upload CSV
-          <input type="file" accept=".csv" onChange={handleFile} className="hidden" />
-        </label>
-        {fileName && <span className="ml-2">{fileName}</span>}
-      </div>
-
-      {showTools && (
-        <div className="bg-white/30 backdrop-blur-md rounded-xl p-4 w-full max-w-md">
-          <h3 className="font-bold mb-2">Winners</h3>
-          {winners.length === 0 ? (
-            <p>No winners yet.</p>
-          ) : (
-            <ul className="list-disc pl-5 max-h-40 overflow-auto">
-              {winners.map((w, i) => (
-                <li key={i}>
-                  <strong>{w.value}</strong> — {w.time}
-                </li>
-              ))}
-            </ul>
-          )}
-          {history.length > 0 && (
-            <button
-              onClick={() => exportCSV(history, "raffle_history.csv")}
-              className="mt-3 px-3 py-1 bg-white/80 rounded-md font-semibold"
-            >
-              Export History CSV
-            </button>
-          )}
-        </div>
+          ⏱ {countdown}
+        </motion.div>
       )}
+
+      {/* Display Winners */}
+      <div className="mt-8 w-full max-w-md flex flex-col items-center gap-4">
+        <AnimatePresence>
+          {displayedWinners.map((winner, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="bg-white/80 backdrop-blur-md p-4 rounded-xl w-full text-center shadow-lg"
+            >
+              <h2 className="text-2xl font-bold text-purple-600">
+                {winner.name}
+              </h2>
+              <p className="text-gray-700 font-semibold">Coupon: {winner.coupon}</p>
+              <p className="text-gray-500 italic">Date: {winner.date}</p>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -9,6 +9,8 @@ import RaffleDraw from "./Pages/RaffleDraw";
 import Winners from "./Pages/Winners";
 import History from "./Pages/History";
 import Login from "./Components/Login"
+import DataMigration from "./Pages/DataMigration";
+import WinnerForm from "./Pages/WinnerForm";
 
 function App() {
   return (
@@ -17,10 +19,12 @@ function App() {
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/comments" element={<Comments />} />
+              <Route path="/datamigration" element={<DataMigration />} />
               <Route path="/raffle" element={<RaffleDraw />} />
               <Route path="/winners" element={<Winners />} />
               <Route path="/history" element={<History />} />
               <Route path="/" element={<Login />}/>
+              <Route path="/winner/:name" element={<WinnerForm />} />
             </Routes>
     </Router>
   );
