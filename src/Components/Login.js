@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { auth } from "../firebase.init";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom"; // ✅ useNavigate instead of useHistory
+import { useNavigate } from "react-router-dom"; //
 
 const Login = () => {
   const [email, setEmail] = useState("");
