@@ -43,8 +43,8 @@ export default function WinnerForm() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-amber-100 p-6">
       <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200">
-        <h1 className="text-3xl font-semibold mb-6 text-center text-indigo-700">
-          🎉 Winner Details
+        <h1 className="text-3xl font-semibold mb-6 text-center text-indigo-700 text-bold">
+          Winner Details
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -150,7 +150,7 @@ export default function WinnerForm() {
             type="submit"
             className="mt-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold py-3 rounded-md shadow-lg hover:shadow-indigo-300 transition-all"
           >
-            🚀 Submit
+           Submit
           </button>
         </form>
       </div>

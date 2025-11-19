@@ -13,7 +13,6 @@ export default function Winners() {
     { value: "Charlie", time: "2025-11-13 09:20 AM" },
     { value: "David", time: "2025-11-14 03:45 PM" },
   ];
-
   const handleWinnerClick = (winner) => {
     navigate(`/winner/${encodeURIComponent(winner.value)}`, { state: winner });
   };

@@ -10,7 +10,6 @@ export default function RaffleDraw() {
   const confettiRef = useRef(null);
   const confettiIntervalRef = useRef(null);
 
-  // Simulated backend winners with coupon numbers and dates
   const dummyNames = [
     { name: "Alice", coupon: "A123" },
     { name: "Bob", coupon: "B456" },
@@ -20,16 +19,15 @@ export default function RaffleDraw() {
     { name: "Frank", coupon: "F987" },
   ];
 
-  // ---------- Confetti ----------
   const startConfetti = () => {
     if (confettiIntervalRef.current) return;
     const host = confettiRef.current;
     if (!host) return;
 
-    const colors = ["#fde047", "#fb7185", "#60a5fa", "#34d399", "#fbbf24", "#a78bfa"];
+    const colors = ["#ffe066", "#ff6b6b", "#4dabf7", "#51cf66", "#f783ac", "#9775fa"];
 
     confettiIntervalRef.current = setInterval(() => {
-      const count = 5 + Math.floor(Math.random() * 5);
+      const count = 5 + Math.random() * 5;
       for (let i = 0; i < count; i++) {
         const el = document.createElement("span");
         const size = 5 + Math.random() * 7;
@@ -39,7 +37,7 @@ export default function RaffleDraw() {
         el.style.width = `${size}px`;
         el.style.height = `${size * (0.6 + Math.random())}px`;
         el.style.background = colors[Math.floor(Math.random() * colors.length)];
-        el.style.opacity = "0.95";
+        el.style.opacity = "0.9";
         el.style.borderRadius = Math.random() > 0.5 ? "50%" : "4px";
         el.style.transform = `rotate(${Math.random() * 360}deg)`;
         host.appendChild(el);
@@ -66,7 +64,6 @@ export default function RaffleDraw() {
     }
   };
 
-  // ---------- Start Draw ----------
   const startDraw = () => {
     if (isDrawing) return;
     if (!fromDate || !toDate) {
@@ -92,7 +89,6 @@ export default function RaffleDraw() {
   };
 
   const showWinners = () => {
-    // simulate fetching winners slowly
     let idx = 0;
     const shuffled = [...dummyNames].sort(() => Math.random() - 0.5);
 
@@ -108,7 +104,7 @@ export default function RaffleDraw() {
         setIsDrawing(false);
         startConfetti();
       }
-    }, 800); // 0.8s per winner
+    }, 800);
   };
 
   useEffect(() => {
@@ -116,74 +112,83 @@ export default function RaffleDraw() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-pink-100 p-12 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 relative overflow-hidden p-6">
       <div ref={confettiRef} className="absolute inset-0 pointer-events-none"></div>
 
-      <h1 className="text-5xl font-extrabold text-center mb-8 text-purple-600">
-        🎉 Lucky Draw
-      </h1>
-
-      {/* Date Selection */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex flex-col">
-          <label className="font-semibold mb-1 text-gray-700">From:</label>
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="font-semibold mb-1 text-gray-700">To:</label>
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none"
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={startDraw}
-        disabled={isDrawing}
-        className="px-10 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-2xl font-bold rounded-full shadow-lg hover:scale-105 transition-transform mb-6 disabled:opacity-50"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-10 border border-gray-200"
       >
-        {isDrawing ? "Drawing…" : "Draw"}
-      </button>
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          🎉 Lucky Draw
+        </h1>
 
-      {countdown !== null && countdown > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-6xl font-extrabold text-yellow-500 drop-shadow-lg"
-        >
-          ⏱ {countdown}
-        </motion.div>
-      )}
+        {/* Date Selection */}
+        <div className="flex items-center justify-between gap-6 mb-10">
+          <div className="flex flex-col w-1/2">
+            <label className="font-semibold text-gray-700 mb-1">From Date</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-purple-300"
+            />
+          </div>
 
-      {/* Display Winners */}
-      <div className="mt-8 w-full max-w-md flex flex-col items-center gap-4">
-        <AnimatePresence>
-          {displayedWinners.map((winner, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="bg-white/80 backdrop-blur-md p-4 rounded-xl w-full text-center shadow-lg"
-            >
-              <h2 className="text-2xl font-bold text-purple-600">
-                {winner.name}
-              </h2>
-              <p className="text-gray-700 font-semibold">Coupon: {winner.coupon}</p>
-              <p className="text-gray-500 italic">Date: {winner.date}</p>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+          <div className="flex flex-col w-1/2">
+            <label className="font-semibold text-gray-700 mb-1">To Date</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:ring-purple-300"
+            />
+          </div>
+        </div>
+
+        {/* Button */}
+        <div className="text-center mb-6">
+          <button
+            onClick={startDraw}
+            disabled={isDrawing}
+            className="px-12 py-3 bg-purple-600 text-white text-lg font-semibold rounded-full shadow hover:bg-purple-700 transition disabled:opacity-50"
+          >
+            {isDrawing ? "Drawing…" : "Start Draw"}
+          </button>
+        </div>
+
+        {/* Countdown */}
+        {countdown !== null && countdown > 0 && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-5xl font-bold text-center text-purple-600 mb-6"
+          >
+            ⏱ {countdown}
+          </motion.div>
+        )}
+
+        {/* Winners */}
+        <div className="mt-6 flex flex-col gap-4">
+          <AnimatePresence>
+            {displayedWinners.map((winner, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="p-4 rounded-xl bg-gray-50 border border-gray-200 shadow-sm"
+              >
+                <p className="text-lg font-semibold text-gray-900">{winner.name}</p>
+                <p className="text-gray-700">Coupon: {winner.coupon}</p>
+                <p className="text-gray-500 text-sm">Date: {winner.date}</p>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </motion.div>
     </div>
   );
 }

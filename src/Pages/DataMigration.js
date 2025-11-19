@@ -91,7 +91,7 @@ export default function DataMigration() {
           whileTap={{ scale: 0.97 }}
           className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-bold py-3 rounded-full shadow-md hover:shadow-lg transition-all"
         >
-          🚀 Get Winners
+          Get Winners
         </motion.button>
       </motion.form>
 
@@ -103,7 +103,7 @@ export default function DataMigration() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          <h3 className="text-2xl font-bold mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-pink-500">
+          <h3 className="text-3xl font-bold mb-6 text-center  bg-clip-text pink-500">
             🏆 Lucky Winners
           </h3>
           <ul className="divide-y divide-gray-200">
@@ -129,7 +129,7 @@ export default function DataMigration() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          😢 No winners found in this range!
+          No winners found in this range!
         </motion.p>
       )}
     </div>
