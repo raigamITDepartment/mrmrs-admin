@@ -21,7 +21,7 @@ const Sidebar = () => {
     { name: "Winners", path: "/winners", icon: <Trophy size={20} /> },
     { name: "History", path: "/history", icon: <History size={20} /> },
   ];
-
+//
   return (
     <div className="w-64 bg-white shadow-lg flex flex-col p-5">
       <div className="flex items-center gap-2 mb-10"> 
